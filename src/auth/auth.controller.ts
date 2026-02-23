@@ -14,8 +14,13 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    const user = await this.authService.register(registerDto);
+    return {
+      message: 'user created successfully',
+      user,
+    };
   }
+
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -23,8 +28,13 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User successfully logged in' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+    const result = await this.authService.login(loginDto);
+    return {
+      message: 'Logged in successfully',
+      ...result,
+    };
   }
+
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)

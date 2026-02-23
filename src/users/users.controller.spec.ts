@@ -15,4 +15,16 @@ describe('UsersController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  describe('getProfile', () => {
+    it('should return the user from the request', () => {
+      const mockUser = { id: 1, email: 'test@example.com' };
+      const mockRequest = { user: mockUser };
+      
+      const result = controller.getProfile(mockRequest);
+      
+      expect(result).toEqual(mockUser);
+    });
+  });
 });
+
