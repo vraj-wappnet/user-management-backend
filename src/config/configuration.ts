@@ -11,5 +11,10 @@ export default () => ({
     secret: process.env.JWT_SECRET || 'super-secret-key',
     expiration: process.env.JWT_EXPIRATION || '1h',
   },
+  mail: {
+    host: process.env.MAIL_HOST || 'smtp.mailtrap.io',
+    port: parseInt(process.env.MAIL_PORT || '2525', 10),
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  },
 });
-

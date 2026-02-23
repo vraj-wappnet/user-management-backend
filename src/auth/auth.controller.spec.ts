@@ -8,10 +8,19 @@ describe('AuthController', () => {
 
   beforeEach(async () => {
     authService = {
-      register: jest.fn().mockResolvedValue({ id: 1, email: 'test@example.com', firstName: 'John', lastName: 'Doe' }),
+      register: jest.fn().mockResolvedValue({
+        id: 'uuid-1',
+        email: 'test@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        message: 'OTP sent to your email. Please verify to complete registration.',
+      }),
       login: jest.fn().mockResolvedValue({
+        message: 'OTP sent to your email. Please verify to login.',
+      }),
+      verifyOtp: jest.fn().mockResolvedValue({
         access_token: 'mockToken',
-        user: { id: 1, email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
+        user: { id: 'uuid-1', email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
       }),
     };
 
@@ -39,15 +48,18 @@ describe('AuthController', () => {
       const result = await controller.register(registerDto);
 
       expect(result).toEqual({
-        message: 'user created successfully',
-        user: { id: 1, email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
+        id: 'uuid-1',
+        email: 'test@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        message: 'OTP sent to your email. Please verify to complete registration.',
       });
       expect(authService.register).toHaveBeenCalledWith(registerDto);
     });
   });
 
   describe('login', () => {
-    it('should return a success message and authentication data', async () => {
+    it('should return a success message indicating OTP sent', async () => {
       const loginDto = {
         email: 'test@example.com',
         password: 'password123',
@@ -56,11 +68,27 @@ describe('AuthController', () => {
       const result = await controller.login(loginDto);
 
       expect(result).toEqual({
-        message: 'Logged in successfully',
-        access_token: 'mockToken',
-        user: { id: 1, email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
+        message: 'OTP sent to your email. Please verify to login.',
       });
       expect(authService.login).toHaveBeenCalledWith(loginDto);
+    });
+  });
+
+  describe('verifyOtp', () => {
+    it('should return authentication data when OTP is verified', async () => {
+      const verifyOtpDto = {
+        email: 'test@example.com',
+        otp: '123456',
+      };
+
+      const result = await controller.verifyOtp(verifyOtpDto);
+
+      expect(result).toEqual({
+        message: 'Verified successfully',
+        access_token: 'mockToken',
+        user: { id: 'uuid-1', email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
+      });
+      expect(authService.verifyOtp).toHaveBeenCalledWith(verifyOtpDto);
     });
   });
 

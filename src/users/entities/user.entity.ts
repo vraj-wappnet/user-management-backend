@@ -3,8 +3,8 @@ import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   email: string;
@@ -13,11 +13,20 @@ export class User {
   @Exclude()
   password: string;
 
-  @Column({ nullable: true })
-  firstName: string;
+  @Column({ type: 'varchar', nullable: true })
+  firstName: string | null;
 
-  @Column({ nullable: true })
-  lastName: string;
+  @Column({ type: 'varchar', nullable: true })
+  lastName: string | null;
+
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  otp: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  otpExpiresAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

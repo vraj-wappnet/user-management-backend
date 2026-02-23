@@ -36,7 +36,7 @@ describe('UsersService', () => {
   describe('create', () => {
     it('should create a user', async () => {
       const userData = { email: 'test@example.com', password: 'hashedContent' };
-      const userInstance = { id: 1, ...userData };
+      const userInstance = { id: 'uuid-1', ...userData };
       
       mockUsersRepository.create.mockReturnValue(userInstance);
       mockUsersRepository.save.mockResolvedValue(userInstance);
@@ -52,7 +52,7 @@ describe('UsersService', () => {
   describe('findByEmail', () => {
     it('should find a user by email', async () => {
       const email = 'test@example.com';
-      const userInstance = { id: 1, email };
+      const userInstance = { id: 'uuid-1', email };
       
       mockUsersRepository.findOne.mockResolvedValue(userInstance);
 
@@ -65,7 +65,7 @@ describe('UsersService', () => {
 
   describe('findById', () => {
     it('should find a user by id', async () => {
-      const id = 1;
+      const id = 'uuid-1';
       const userInstance = { id, email: 'test@example.com' };
       
       mockUsersRepository.findOne.mockResolvedValue(userInstance);
