@@ -6,6 +6,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import * as bcrypt from 'bcrypt';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -56,20 +58,27 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Login failed: User with this email does not exist');
     }
+    
+    if (!user.isVerified){
+      throw new UnauthorizedException('Login failed: User is not verified');
+    }
 
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Login failed: Incorrect password');
     }
 
-    const otp = this.generateOtp();
-    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-    await this.usersService.update(user.id, { otp, otpExpiresAt });
-    await this.mailService.sendOtp(user.email, otp);
-
+    const payload = { email: user.email, sub: user.id };
     return {
-      message: 'OTP sent to your email. Please verify to login.',
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isVerified: user.isVerified,
+      },
+      message: 'Logged in successfully',
     };
   }
 
@@ -88,21 +97,66 @@ export class AuthService {
     }
 
     // Clear OTP and set isVerified to true
-    await this.usersService.update(user.id, {
+     await this.usersService.update(user.id, {
+      isVerified: true,
       otp: null,
       otpExpiresAt: null,
-      isVerified: true,
-    });
+    });    
 
-    const payload = { email: user.email, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      message: 'Verified successfully',
     };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.usersService.findByEmail(forgotPasswordDto.email);
+
+    if(!user)
+    {
+      throw new UnauthorizedException('user not found');
+    }
+
+    const otp = this.generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.usersService.update(user.id, {
+      otp,
+      otpExpiresAt,
+    })
+
+    await this.mailService.sendOtp(user.email, otp);
+
+    return {
+      message : "OTP sent to your email. Please verify to reset your password."
+    }
+  }
+
+  async resetPassword(resetPasswordDto : ResetPasswordDto){
+
+    const user = await  this.usersService.findByEmail(resetPasswordDto.email);
+
+    if(!user){
+      throw new UnauthorizedException('user not found');
+    }
+
+    if(!user.otp || !user.otpExpiresAt  || user.otp !== resetPasswordDto.otp){
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    if(new Date() > user.otpExpiresAt){
+      throw new BadRequestException('OTP expired');
+    }
+
+    const hashPassword = await bcrypt.hash(resetPasswordDto.newPassword , 10);
+
+    await this.usersService.update(user.id,{
+      password : hashPassword,
+      otp : null,
+      otpExpiresAt : null,
+    })
+    
+    return {
+      message : "Password reset successfully"
+    }
   }
 }

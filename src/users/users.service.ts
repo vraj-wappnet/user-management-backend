@@ -24,7 +24,20 @@ export class UsersService {
   }
 
   async update(id: string, updateData: Partial<User>): Promise<User> {
-    await this.usersRepository.update(id, updateData);
-    return (await this.findById(id))!;
+    const user = await this.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    console.log(updateData);
+    user.email = updateData.email || user.email;
+    user.password = updateData.password || user.password;
+    user.firstName = updateData.firstName || user.firstName;
+    user.lastName = updateData.lastName || user.lastName;
+    user.isVerified = updateData.isVerified || user.isVerified;
+    user.otp = updateData.otp || user.otp;
+    user.otpExpiresAt = updateData.otpExpiresAt || user.otpExpiresAt;
+    const updatedUser = await this.usersRepository.save(user);
+    console.log(updatedUser);
+    return updatedUser;
   }
 }
