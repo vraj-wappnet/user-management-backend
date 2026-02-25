@@ -16,9 +16,12 @@ describe('AuthController', () => {
         message: 'OTP sent to your email. Please verify to complete registration.',
       }),
       login: jest.fn().mockResolvedValue({
-        message: 'OTP sent to your email. Please verify to login.',
+        message: 'Logged in successfully',
+        access_token: 'mockToken',
+        user: { id: 'uuid-1', email: 'test@example.com', firstName: 'John', lastName: 'Doe', isVerified: true },
       }),
       verifyOtp: jest.fn().mockResolvedValue({
+        message: 'Verified successfully',
         access_token: 'mockToken',
         user: { id: 'uuid-1', email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
       }),
@@ -68,7 +71,9 @@ describe('AuthController', () => {
       const result = await controller.login(loginDto);
 
       expect(result).toEqual({
-        message: 'OTP sent to your email. Please verify to login.',
+        message: 'Logged in successfully',
+        access_token: 'mockToken',
+        user: { id: 'uuid-1', email: 'test@example.com', firstName: 'John', lastName: 'Doe', isVerified: true },
       });
       expect(authService.login).toHaveBeenCalledWith(loginDto);
     });

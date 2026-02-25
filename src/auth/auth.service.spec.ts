@@ -93,6 +93,7 @@ describe('AuthService', () => {
         password: await bcrypt.hash('password123', 10),
         firstName: 'John',
         lastName: 'Doe',
+        isVerified: true,
       };
 
       (usersService.findByEmail as jest.Mock).mockResolvedValue(user);
@@ -100,9 +101,11 @@ describe('AuthService', () => {
       const result = await service.login(loginDto);
 
       expect(result).toBeDefined();
-      expect(result.message).toContain('OTP sent');
-      expect(usersService.update).toHaveBeenCalled();
-      expect(mailService.sendOtp).toHaveBeenCalled();
+      expect(result.access_token).toBeDefined();
+      expect(result.user).toBeDefined();
+      expect(result.message).toContain('Logged in successfully');
+      expect(usersService.update).not.toHaveBeenCalled();
+      expect(mailService.sendOtp).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException if user not found', async () => {
@@ -155,7 +158,7 @@ describe('AuthService', () => {
       const result = await service.verifyOtp(verifyOtpDto);
 
       expect(result).toBeDefined();
-      expect(result.access_token).toEqual('mockToken');
+      expect(result.message).toEqual('Verified successfully');
       expect(usersService.update).toHaveBeenCalledWith('uuid-1', {
         otp: null,
         otpExpiresAt: null,
